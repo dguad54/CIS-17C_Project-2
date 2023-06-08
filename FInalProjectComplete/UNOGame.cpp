@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <random>
+
 using namespace std;
 
 UNOGame::UNOGame() {
@@ -21,6 +22,11 @@ size_t UNOGame::hashFunction(const string& key) {
         hash += c;
     }
     return hash;
+}
+
+size_t UNOGame::hashCard(const Card& card) {
+    string cardString = card.color + card.value;
+    return hashFunction(cardString);
 }
 
 void UNOGame::initializeDeck() {
@@ -44,6 +50,52 @@ void UNOGame::initializeDeck() {
         wildDrawFourCard.color = "Wild";
         wildDrawFourCard.value = "Wild Draw Four";
         deck.push_back(wildDrawFourCard);
+    }
+}
+
+void UNOGame::mergeSort(vector<Card>& cards) {
+    if (cards.size() <= 1) {
+        return;
+    }
+
+    // Divide the vector into two halves
+    int mid = cards.size() / 2;
+    vector<Card> left(cards.begin(), cards.begin() + mid);
+    vector<Card> right(cards.begin() + mid, cards.end());
+
+    // Recursively sort the two halves
+    mergeSort(left);
+    mergeSort(right);
+
+    // Merge the sorted halves
+    int i = 0; // Index for the left half
+    int j = 0; // Index for the right half
+    int k = 0; // Index for the merged vector
+
+    while (i < left.size() && j < right.size()) {
+        if (left[i].value <= right[j].value) {
+            cards[k] = left[i];
+            i++;
+        }
+        else {
+            cards[k] = right[j];
+            j++;
+        }
+        k++;
+    }
+
+    // Copy the remaining elements from the left half
+    while (i < left.size()) {
+        cards[k] = left[i];
+        i++;
+        k++;
+    }
+
+    // Copy the remaining elements from the right half
+    while (j < right.size()) {
+        cards[k] = right[j];
+        j++;
+        k++;
     }
 }
 
@@ -72,8 +124,11 @@ void UNOGame::dealCards() {
             playerCards[player.first].push_back(deck.back());
             deck.pop_back();
         }
+
+        mergeSort(playerCards[player.first]);  // Sort the player's cards
     }
 }
+
 
 void UNOGame::displayHand(const string& playerName) {
     cout << playerName << "'s Hand: ";
@@ -166,6 +221,7 @@ void UNOGame::playTurn() {
                 string nextPlayer = getNextPlayer();
                 currentNode->children.push_back(gameTree.createNode(nextPlayer));
                 currentNode = currentNode->children.back();
+                playTurn();  // Recursively call playTurn for the next player's turn
                 return;
             }
             else {
@@ -231,26 +287,12 @@ void UNOGame::playGame() {
 
     std::cout << "Game Started!" << std::endl;
 
-    while (true) {
-        string currentPlayerName = getPlayerName(currentPlayer);
-        cout << "------------------------" << endl;
-        cout << "Current Player: " << currentPlayerName << endl;
-        displayHand(currentPlayerName);
+    playTurn();  // Start the game by calling playTurn for the first player's turn
 
-        if (!hasValidMove(currentPlayerName)) {
-            cout << "No valid moves. Drawing a card..." << endl;
-            drawCards(currentPlayerName, 1);
-            displayHand(currentPlayerName);
-        }
-
-        playTurn();
-        updateCurrentPlayer();
-
-        cout << "------------------------" << endl;
-        cout << "Scores:" << endl;
-        for (const auto& player : players) {
-            cout << player.first << ": " << player.second << endl;
-        }
-        cout << "------------------------" << endl;
+    cout << "------------------------" << endl;
+    cout << "Scores:" << endl;
+    for (const auto& player : players) {
+        cout << player.first << ": " << player.second << endl;
     }
+    cout << "------------------------" << endl;
 }
