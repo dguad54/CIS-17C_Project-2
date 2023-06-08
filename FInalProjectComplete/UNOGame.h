@@ -18,7 +18,7 @@ protected:
     unordered_map<string, vector<Card>> playerCards;
     Tree gameTree;
     TreeNode* currentNode;
-
+    size_t hashCard(const Card& card);
 public:
     UNOGame();
 
@@ -51,6 +51,9 @@ public:
     string getPlayerName(int playerIndex);
 
     void playGame();
+
+    void mergeSort(vector<Card>& cards);
 };
 
 #endif  // UNOGAME_H
+
